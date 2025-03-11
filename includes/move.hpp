@@ -1,16 +1,11 @@
-// #pragma once
+#pragma once
 
-// using namespace std;
+#include <memory>
+#include "piece.hpp"
 
-// class Move {
-//     private:
-//         int _from_c;
-//         int _from_r;
-//         int _to_c;
-//         int _to_r;
-
-//     public:
-//         Move(int fx, int fy, int tx, int ty);
-//         string to_algebraic_notation() const;
-// };
-
+struct Move {
+    int from_row, from_col;
+    int to_row, to_col;
+    unique_ptr<Piece> captured_piece;
+    char promotion_piece = '\0';
+};

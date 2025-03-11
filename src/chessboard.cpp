@@ -1,5 +1,6 @@
 #include "chessboard.hpp"
 #include <sstream>
+#include <fstream>
 #include <cctype>
 #include "pawn.hpp"
 #include "knight.hpp"
@@ -8,6 +9,7 @@
 #include "bishop.hpp"
 #include "queen.hpp"
 #include "piece.hpp"
+#include <random>
 
 ChessBoard::ChessBoard() {
     for(int i = 0; i < COL; i++) {
@@ -16,6 +18,7 @@ ChessBoard::ChessBoard() {
         }
     }
     active_color = 'w';
+    initialize_board();
 }
 
 void ChessBoard::parse_fen(const string& fen) {
@@ -48,57 +51,36 @@ void ChessBoard::parse_fen(const string& fen) {
             col++;
         }
     }
-
-    // print_board();
 }
 
-// void ChessBoard::fill_board(const string& rank, int row) {
-//     int col = 0;
+void ChessBoard::initialize_board() {
+    king_pos[0] = {7, 4};
+    king_pos[1] = {0, 4};
+}
 
-//     for(char c: rank) {
-//         if(isdigit(c)) {
-//             col += c - '0';
-//         } else {
-//             _board[row][col] = c;
-//             col++;
-//         }
-//     }
-// }
+void ChessBoard::update_king_position(int row, int col, bool is_white) {
+    king_pos[is_white ? 0 : 1] = {row, col};
+}
 
-// vector<Move> ChessBoard::generate_move(char color) const {
-//     vector<Move> moves;
+void ChessBoard::load_opening_book() {
+    ifstream file("opening_book.txt");
+    string fen, moves_line;
+    while (getline(file, fen)) {
+        if (getline(file, moves_line)) {
+            istringstream iss(moves_line);
+            string move;
+            vector<string> moves;
+            while (iss >> move) {
+                moves.push_back(move);
+            }
+            opening_book.emplace(fen, std::move(moves));
+        }
+    }
+}
 
-//     for(int i = 0; i < ROW; i++) {
-//         for(int j = 0; j < COL; j++) {
-//             char piece = _board[i][j];
-
-//             if(piece != '.' && ((isupper(piece) && color == 'w') || (islower(piece) && color == 'b'))) {
-//                 switch (tolower(piece)) {
-//                     case 'k':
-//                         moves.insert(moves.end(), generate_king_move(i, j, color).begin(), generate_king_move(i, j, color).end());
-//                         break;
-                    
-//                     case 'q':
-//                     moves.insert(moves.end(), generate_queen_move(i, j, color).begin(), generate_queen_move(i, j, color).end());
-//                         break;
-
-//                     case 'r':
-//                     moves.insert(moves.end(), generate_rock_move(i, j, color).begin(), generate_rock_move(i, j, color).end());
-//                         break;
-
-//                     case 'n': //knight
-//                         moves.insert(moves.end(), generate_knight_move(i, j, color).begin(), generate_knight_move(i, j, color).end());
-//                         break;
-
-//                     case 'b':
-//                     moves.insert(moves.end(), generate_bishop_move(i, j, color).begin(), generate_bishop_move(i, j, color).end());
-//                         break;            
-//                 }
-//             }
-//         }
-//     }
-//     return moves;
-// }
+string ChessBoard::get_book_move() {
+    
+}
 
 void ChessBoard::print_board() {
     for(int i = 0; i < ROW; i++) {

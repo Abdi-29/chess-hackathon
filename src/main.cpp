@@ -7,4 +7,5 @@ int main(void) {
 
     board.parse_fen(fen);
     board.print_board();
+    board.load_opening_book();
 }
