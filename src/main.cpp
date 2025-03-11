@@ -6,4 +6,5 @@ int main(void) {
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     board.parse_fen(fen);
+    board.print_board();
 }

@@ -3,12 +3,12 @@
 #include <string>
 #include "piece.hpp"
 // #include "move.hpp"
-#include "pawn.hpp"
-#include "knight.hpp"
-#include "rock.hpp"
-#include "king.hpp"
-#include "bishop.hpp"
-#include "queen.hpp"
+// #include "pawn.hpp"
+// #include "knight.hpp"
+// #include "rock.hpp"
+// #include "king.hpp"
+// #include "bishop.hpp"
+// #include "queen.hpp"
 
 using namespace std;
 

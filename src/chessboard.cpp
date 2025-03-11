@@ -1,6 +1,13 @@
 #include "chessboard.hpp"
 #include <sstream>
 #include <cctype>
+#include "pawn.hpp"
+#include "knight.hpp"
+#include "rock.hpp"
+#include "king.hpp"
+#include "bishop.hpp"
+#include "queen.hpp"
+#include "piece.hpp"
 
 ChessBoard::ChessBoard() {
     for(int i = 0; i < COL; i++) {
@@ -31,7 +38,7 @@ void ChessBoard::parse_fen(const string& fen) {
         } else {
             bool is_white = isupper(c);
             switch (tolower(c)) {
-                case 'r': board[row][col] = new Rook(is_white); break;
+                case 'r': board[row][col] = new Rock(is_white); break;
                 case 'n': board[row][col] = new Knight(is_white); break;
                 case 'p': board[row][col] = new Pawn(is_white); break;
                 case 'k': board[row][col] = new King(is_white); break;
