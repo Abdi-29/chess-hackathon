@@ -48,4 +48,7 @@ class ChessBoard {
 
         bool is_king_in_check(char color);
 
+		// Emily functions :)
+		int count_material(char color);
+		int evaluate();
 };      
