@@ -6,7 +6,7 @@ class Knight : public Piece {
     public:
         Knight(bool white) : Piece(white, white ? 'N' : 'n') {}
 
-        vector<pair<int, int>> get_moves(int row, int col, Piece* board[8][8]) override {
+        vector<pair<int, int>> get_moves(int row, int col, unique_ptr<Piece> board[8][8]) override {
             vector<pair<int, int>> moves;
             static const int offsets[8][2] = {
                 {2, 1}, {2, -1}, {-2, 1}, {-2, -1},

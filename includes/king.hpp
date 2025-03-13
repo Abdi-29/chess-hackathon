@@ -6,7 +6,7 @@ class King : public Piece {
     public:
         King(bool white) : Piece(white, white ? 'K' : 'k') {}
 
-        vector<pair<int, int>> get_moves(int row, int col, Piece* board[8][8]) override {
+        vector<pair<int, int>> get_moves(int row, int col, unique_ptr<Piece> board[8][8]) override {
             vector<pair<int, int>> moves;
             const int directions[8][2] = {
                 {1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}

@@ -6,7 +6,7 @@ class Queen : public Piece {
     public:
         Queen(bool white) : Piece(white, white ? 'Q' : 'q') {}
 
-        vector<pair<int, int>> get_moves(int row, int col, Piece* board[8][8]) override {
+        vector<pair<int, int>> get_moves(int row, int col, unique_ptr<Piece> board[8][8]) override {
             vector<pair<int, int>> moves;
             const int directions[8][2] = {
                 {1, 1}, {1, -1}, {-1, 1}, {-1, -1},
@@ -22,7 +22,7 @@ class Queen : public Piece {
                     if(board[nr][nc] == nullptr) {
                         moves.push_back({nr, nc});
                     } else {
-                        if (board[nr][nc]->is_white != is_white) {
+                        if(board[nr][nc]->is_white != is_white) {
                             moves.push_back({nr, nc});
                         }
                         break;

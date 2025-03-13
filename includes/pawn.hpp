@@ -6,7 +6,7 @@ class Pawn : public Piece {
     public:
         Pawn(bool white) : Piece(white, white ? 'P' : 'p') {}
 
-        vector<pair<int, int>> get_moves(int row, int col, Piece* board[8][8]) override {
+        vector<pair<int, int>> get_moves(int row, int col, unique_ptr<Piece> board[8][8]) override {
             vector<pair<int, int>> moves;
             int direction = is_white ? 1 : -1;
             int start = is_white ? 1 : 6;
