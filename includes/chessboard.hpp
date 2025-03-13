@@ -13,6 +13,8 @@ class ChessBoard {
     private:
         unique_ptr<Piece> board[8][8];
         char active_color;
+        int halfmove_clock;
+        int fullmove_number;
         pair<int, int> king_pos[2];
         unordered_map<string, vector<string>> opening_book;
 
@@ -20,7 +22,7 @@ class ChessBoard {
         struct Move {
             int from_row, from_col;
             int to_row, to_col;
-            std::unique_ptr<Piece> captured_piece;
+            unique_ptr<Piece> captured_piece;
             char promotion_piece = '\0';
             bool is_castling = false;
             bool is_en_passant = false;
@@ -28,6 +30,7 @@ class ChessBoard {
 
         ChessBoard();
         void parse_fen(const string& fen);
+        void clear_board();
         void initialize_board();
         void update_king_position(int row, int col, bool is_white);
         void load_opening_book();
@@ -37,9 +40,12 @@ class ChessBoard {
         void make_move(const Move& move);
         string getFEN();
         vector<Move>& generate_legal_moves();
+        string move_to_uci(const Move& move);
         void print_board();
 
         void uci_position(std::istringstream& iss, const string& fen);
         void uci_go(istringstream& iss);
+
+        bool is_king_in_check(char color);
 
 };      

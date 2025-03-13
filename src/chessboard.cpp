@@ -17,8 +17,18 @@ ChessBoard::ChessBoard() {
             board[i][j] = nullptr;
         }
     }
-    active_color = 'w';
+    // active_color = 'w';
+    halfmove_clock = 0;
+    fullmove_number = 1;
     initialize_board();
+}
+
+void ChessBoard::clear_board() {
+    for(int i = 0; i < COL; i++) {
+        for(int j = 0; j < ROW; j++) {
+            board[i][j] = nullptr;
+        }
+    }
 }
 
 void ChessBoard::parse_fen(const string& fen) {
@@ -26,7 +36,7 @@ void ChessBoard::parse_fen(const string& fen) {
     string pieces;
     iss >> pieces >> active_color;
 
-    cout << "pieces: " << pieces << endl;
+    cout << "parse_fen: " << fen << endl;
     cout << "color: " << active_color << endl;
 
     int row = ROW - 1;
@@ -82,17 +92,12 @@ string ChessBoard::get_best_move_from_book(const string& fen) {
     istringstream iss(fen);
     string piece_placement, active_color, castling_rights, en_passant, halfmove_clock, fullmove_number;
     iss >> piece_placement >> active_color >> castling_rights >> en_passant >> halfmove_clock >> fullmove_number;
-    if(active_color == "w") {
         auto it = opening_book.find(fen);
         if(it != opening_book.end() && !it->second.empty()) {
             const auto& moves = it->second;
-            random_device rd;
-            mt19937 gen(rd());
-            uniform_int_distribution<> dis(0, moves.size() - 1);
-            int random_index = dis(gen);
-            return moves[random_index];
+            return moves[0];
         }
-    }
+    
     return "";
 }
 
@@ -114,6 +119,15 @@ void ChessBoard::make_move(const Move& move) {
     board[move.to_row][move.to_col] = std::move(board[move.from_row][move.from_col]);
     board[move.from_row][move.from_col] = nullptr;
 
+    bool is_capture = (board[move.to_row][move.to_col] != nullptr);
+    bool is_pawn_move = (board[move.to_row][move.to_col] && board[move.to_row][move.to_col]->type == 'p');
+
+    if (is_capture || is_pawn_move) {
+        halfmove_clock = 0;
+    } else {
+        halfmove_clock++;
+    }
+
     if(board[move.to_row][move.to_col]->type == (active_color == 'w' ? 'K' : 'k')) {
         update_king_position(move.to_row, move.to_col, active_color == 'w');
     }
@@ -128,8 +142,29 @@ void ChessBoard::make_move(const Move& move) {
         }
     }
 
+    if (active_color == 'b') {
+        fullmove_number++;
+    }
     active_color = (active_color == 'w') ? 'b' : 'w';
 }
+
+bool ChessBoard::is_king_in_check(char color) {
+    for (int row = 0; row < ROW; row++) {
+        for (int col = 0; col < COL; col++) {
+            if (board[row][col] && board[row][col]->is_white != (color == 'w')) {
+                auto moves = board[row][col]->get_moves(row, col, board);
+                for (auto [to_row, to_col] : moves) {
+                    if (to_row == king_pos[0] && to_col == king_pos[1]) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 
 string ChessBoard::getFEN() {
     string fen;
@@ -154,19 +189,25 @@ string ChessBoard::getFEN() {
             fen += '/';
         }
     }
-    fen += " " + std::string(1, active_color) + " KQkq - 0 1"; //temporaly
+    fen += " " + string(1, active_color) + " KQkq - " + to_string(halfmove_clock) + " " + to_string(fullmove_number);
     return fen;
 }
 
 vector<ChessBoard::Move>& ChessBoard::generate_legal_moves() {
     vector<Move> moves;
-    for(int row = 0; row < ROW; row++) {
-        for(int col = 0; col < COL; col++) {
-            if(board[row][col] && board[row][col]->is_white == (active_color == 'w')) {
+    for (int row = 0; row < ROW; row++) {
+        for (int col = 0; col < COL; col++) {
+            if (board[row][col] && board[row][col]->is_white == (active_color == 'w')) {
                 auto piece_moves = board[row][col]->get_moves(row, col, board);
-                for(auto [to_row, to_col] : piece_moves) {
+                
+                for (auto [to_row, to_col] : piece_moves) {
                     Move move{row, col, to_row, to_col};
-                    moves.push_back(std::move(move));
+                    ChessBoard temp_board = *this;
+                    temp_board.make_move(move);
+
+                    if (!temp_board.is_king_in_check(active_color)) {
+                        moves.push_back(move);
+                    }
                 }
             }
         }
@@ -178,6 +219,8 @@ void ChessBoard::uci_position(istringstream& iss, const string& default_fen) {
     string token;
     iss >> token;
 
+    clear_board();
+    fullmove_number = 1;
     if(token == "startpos") {
         parse_fen(default_fen);
     } else if(token == "fen") {
@@ -188,8 +231,9 @@ void ChessBoard::uci_position(istringstream& iss, const string& default_fen) {
         parse_fen(fen);
     }
 
-    if(iss >> token && token == "moves") {
+    if(iss >> token && token.starts_with("moves")) {
         while(iss >> token) {
+            cout << "token: " << token << endl;
             Move move = parse_move(token);
             make_move(move);
         }
@@ -220,10 +264,29 @@ void ChessBoard::uci_go(istringstream& iss) {
     cout << "bestmove " << best_move << endl;
 }
 
+string ChessBoard::move_to_uci(const Move& move) {
+    char from_file = 'a' + move.from_col;  
+    char to_file = 'a' + move.to_col;  
+    int from_rank = move.from_row + 1;  
+    int to_rank = move.to_row + 1;  
+
+    return string(1, from_file) + to_string(from_rank) +
+           string(1, to_file) + to_string(to_rank);
+}
+
+
 
 string ChessBoard::get_best_move(int depth, int movetime) {
-    //TODO implement the algo in case the opening is not on the book
-    return "";
+    // vector<Move> legal_moves = generate_legal_moves();
+
+    // if (legal_moves.empty()) {
+    //     return "";
+    // }
+
+    // // TODO: Alpha-Beta Pruning here
+
+    // Move best_move = legal_moves[0];
+    // return move_to_uci(best_move);
 }
 
 void ChessBoard::print_board() {

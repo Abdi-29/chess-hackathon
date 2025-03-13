@@ -37,7 +37,3 @@ int main(void) {
         }
     }
 }
-
-void uciLoop() {
-    
-}
